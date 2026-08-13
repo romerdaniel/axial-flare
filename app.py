@@ -156,7 +156,7 @@ W, R, ROP_g, MSE_g = gen_contour(id(model), med)
 fig = go.Figure()
 fig.add_trace(go.Contour(z=ROP_g, x=W[0], y=R[:,0], colorscale="Magma",
     contours=dict(showlabels=True, labelfont=dict(size=9,color="white")),
-    colorbar=dict(title="ROP (ft/hr)", titleside="right")))
+    colorbar=dict(title=dict(text="ROP (ft/hr)", side="right"))))
 for lvl in [20, 30, 40, 50, 60]:
     fig.add_trace(go.Contour(z=MSE_g, x=W[0], y=R[:,0],
         contours=dict(start=lvl,end=lvl,size=0,showlabels=True,labelfont=dict(size=9,color="white")),
@@ -214,3 +214,4 @@ Capstone Project | ML & AI Postgraduate \u2014 UT Austin<br>
 Dataset: Equinor Volve Field (Public Domain) | R\u00b2 = {r2_val:.3f}<br>
 <span style="font-size:0.75rem;color:#475569;">Python \u2022 Scikit-learn \u2022 Streamlit \u2022 Plotly</span>
 </div>""", unsafe_allow_html=True)
+
