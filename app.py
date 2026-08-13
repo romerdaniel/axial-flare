@@ -138,8 +138,8 @@ st.markdown("### \U0001F5FA\ufe0f Parameter Optimization Landscape")
 
 @st.cache_data
 def gen_contour(_model_id, med_dict):
-    wr = np.linspace(5, 35, 45)
-    rr = np.linspace(30, 200, 45)
+    wr = np.linspace(5, 35, 50)
+    rr = np.linspace(30, 200, 50)
     W, R = np.meshgrid(wr, rr)
     preds, mses = [], []
     for w, r in zip(W.ravel(), R.ravel()):
@@ -154,21 +154,26 @@ med = df_drill[FEATURES].median().to_dict()
 W, R, ROP_g, MSE_g = gen_contour(id(model), med)
 
 fig = go.Figure()
-fig.add_trace(go.Contour(z=ROP_g, x=W[0], y=R[:,0], colorscale="Magma",
-    contours=dict(showlabels=True, labelfont=dict(size=9,color="white")),
+fig.add_trace(go.Heatmap(z=ROP_g, x=W[0], y=R[:,0], colorscale="Magma",
+    zsmooth="best",
     colorbar=dict(title=dict(text="ROP (ft/hr)", side="right"))))
-for lvl in [20, 30, 40, 50, 60]:
-    fig.add_trace(go.Contour(z=MSE_g, x=W[0], y=R[:,0],
-        contours=dict(start=lvl,end=lvl,size=0,showlabels=True,labelfont=dict(size=9,color="white")),
-        line=dict(color="white",width=1,dash="dash"), showscale=False, showlegend=False))
+fig.add_trace(go.Contour(z=MSE_g, x=W[0], y=R[:,0],
+    contours=dict(start=15, end=80, size=10, showlabels=True,
+        labelfont=dict(size=10, color="white")),
+    line=dict(color="cyan", width=2, dash="dash"),
+    showscale=False, showlegend=True, name="MSE (kpsi)",
+    contours_coloring="none"))
 fig.add_trace(go.Scatter(x=[wob], y=[rpm], mode="markers+text",
-    marker=dict(size=18,color="lime",symbol="star",line=dict(width=2,color="black")),
+    marker=dict(size=20, color="lime", symbol="star",
+        line=dict(width=2, color="black")),
     text=[f"YOU: {pred_rop:.0f} ft/hr"], textposition="top center",
-    textfont=dict(color="lime",size=12), name="Current"))
+    textfont=dict(color="lime", size=13, family="Inter"),
+    name="Current Position"))
 fig.update_layout(template="plotly_dark", paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(15,23,42,1)", xaxis_title="WOB (klbs)", yaxis_title="RPM",
-    height=520, font=dict(family="Inter"), margin=dict(l=60,r=80,t=20,b=60),
-    legend=dict(x=0.01,y=0.99,bgcolor="rgba(0,0,0,0.5)"))
+    height=540, font=dict(family="Inter"), margin=dict(l=60,r=80,t=20,b=60),
+    legend=dict(x=0.01, y=0.99, bgcolor="rgba(0,0,0,0.6)",
+        font=dict(color="white")))
 st.plotly_chart(fig, use_container_width=True)
 
 # ==============================================================================
@@ -214,4 +219,5 @@ Capstone Project | ML & AI Postgraduate \u2014 UT Austin<br>
 Dataset: Equinor Volve Field (Public Domain) | R\u00b2 = {r2_val:.3f}<br>
 <span style="font-size:0.75rem;color:#475569;">Python \u2022 Scikit-learn \u2022 Streamlit \u2022 Plotly</span>
 </div>""", unsafe_allow_html=True)
+
 
