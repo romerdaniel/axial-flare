@@ -2,7 +2,9 @@
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
-import joblib
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import r2_score
 import os
 
 # ==============================================================================
@@ -44,6 +46,9 @@ st.markdown("""
 # ==============================================================================
 BIT_DIAMETER = 12.25
 BIT_AREA = (np.pi / 4) * BIT_DIAMETER**2
+FEATURES = ["WOB_klbs", "RPM", "Torque_ftlbs", "Depth_ft", "Flow_gpm", "GR_API"]
+TARGET = "ROP_fthr"
+SEED = 42
 
 def calc_mse(wob, rpm, torque, rop):
     rop = max(rop, 0.1)
@@ -55,29 +60,29 @@ def mse_zone(mse):
     else: return "CRITICAL", "critical", "#ef4444"
 
 # ==============================================================================
-# LOAD RESOURCES
+# LOAD DATA & TRAIN MODEL (cached — runs once)
 # ==============================================================================
 @st.cache_resource
-def load_model():
+def load_and_train():
     base = os.path.dirname(os.path.abspath(__file__))
-    model = joblib.load(os.path.join(base, "axial_flare_model.pkl"))
-    meta = joblib.load(os.path.join(base, "axial_flare_meta.pkl"))
-    return model, meta
+    df = pd.read_csv(os.path.join(base, "data", "volve_f9a_processed.csv"))
+    ml = df[FEATURES + [TARGET]].dropna()
+    X = ml[FEATURES]
+    y = ml[TARGET]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=SEED)
+    model = GradientBoostingRegressor(n_estimators=200, max_depth=5, learning_rate=0.1, random_state=SEED)
+    model.fit(X_train, y_train)
+    r2 = r2_score(y_test, model.predict(X_test))
+    return model, df, r2
 
-@st.cache_data
-def load_data():
-    base = os.path.dirname(os.path.abspath(__file__))
-    return pd.read_csv(os.path.join(base, "data", "volve_f9a_processed.csv"))
-
-model, meta = load_model()
-df_drill = load_data()
+model, df_drill, r2_val = load_and_train()
 
 # ==============================================================================
 # HEADER
 # ==============================================================================
 st.markdown('<h1 class="hero-title">\U0001F525 AXIAL FLARE</h1>', unsafe_allow_html=True)
 st.markdown('<p class="hero-sub">AI Drilling Co-Pilot \u2014 Prescriptive Parameter Optimization</p>', unsafe_allow_html=True)
-st.markdown('<p class="hero-sub" style="font-size:0.8rem;color:#64748b;">Equinor Volve Field (North Sea) | Gradient Boosting R\u00b2 = 0.876</p>', unsafe_allow_html=True)
+st.markdown(f'<p class="hero-sub" style="font-size:0.8rem;color:#64748b;">Equinor Volve Field (North Sea) | Gradient Boosting R\u00b2 = {r2_val:.3f}</p>', unsafe_allow_html=True)
 st.markdown("---")
 
 # ==============================================================================
@@ -96,13 +101,13 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("**Dataset:** Volve F-9_A")
     st.markdown(f"**Points:** {len(df_drill):,}")
-    st.markdown(f"**Model:** {meta['best_model']}")
+    st.markdown("**Model:** Gradient Boosting")
 
 # ==============================================================================
 # PREDICTIONS
 # ==============================================================================
 input_data = pd.DataFrame([{"WOB_klbs":wob,"RPM":rpm,"Torque_ftlbs":torque,"Depth_ft":depth,"Flow_gpm":flow,"GR_API":gr}])
-pred_rop = max(model.predict(input_data[meta["features"]])[0], 0.1)
+pred_rop = max(model.predict(input_data[FEATURES])[0], 0.1)
 mse_val = calc_mse(wob, rpm, torque, pred_rop)
 z_label, z_class, z_color = mse_zone(mse_val)
 efficiency = min(100, max(0, (1 - (mse_val - 5) / 55) * 100))
@@ -132,37 +137,34 @@ st.markdown("---")
 st.markdown("### \U0001F5FA\ufe0f Parameter Optimization Landscape")
 
 @st.cache_data
-def gen_contour(_model, _features, _med):
+def gen_contour(_model_id, med_dict):
     wr = np.linspace(5, 35, 45)
     rr = np.linspace(30, 200, 45)
     W, R = np.meshgrid(wr, rr)
     preds, mses = [], []
     for w, r in zip(W.ravel(), R.ravel()):
-        row = _med.copy()
+        row = med_dict.copy()
         row["WOB_klbs"], row["RPM"] = w, r
-        p = max(_model.predict(pd.DataFrame([row])[_features])[0], 0.1)
+        p = max(model.predict(pd.DataFrame([row])[FEATURES])[0], 0.1)
         preds.append(p)
-        mses.append(calc_mse(w, r, _med["Torque_ftlbs"], p))
+        mses.append(calc_mse(w, r, med_dict["Torque_ftlbs"], p))
     return W, R, np.array(preds).reshape(W.shape), np.array(mses).reshape(W.shape)
 
-med = df_drill[meta["features"]].median().to_dict()
-W, R, ROP_g, MSE_g = gen_contour(model, meta["features"], med)
+med = df_drill[FEATURES].median().to_dict()
+W, R, ROP_g, MSE_g = gen_contour(id(model), med)
 
 fig = go.Figure()
 fig.add_trace(go.Contour(z=ROP_g, x=W[0], y=R[:,0], colorscale="Magma",
     contours=dict(showlabels=True, labelfont=dict(size=9,color="white")),
     colorbar=dict(title="ROP (ft/hr)", titleside="right")))
-
 for lvl in [20, 30, 40, 50, 60]:
     fig.add_trace(go.Contour(z=MSE_g, x=W[0], y=R[:,0],
         contours=dict(start=lvl,end=lvl,size=0,showlabels=True,labelfont=dict(size=9,color="white")),
         line=dict(color="white",width=1,dash="dash"), showscale=False, showlegend=False))
-
 fig.add_trace(go.Scatter(x=[wob], y=[rpm], mode="markers+text",
     marker=dict(size=18,color="lime",symbol="star",line=dict(width=2,color="black")),
     text=[f"YOU: {pred_rop:.0f} ft/hr"], textposition="top center",
     textfont=dict(color="lime",size=12), name="Current"))
-
 fig.update_layout(template="plotly_dark", paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(15,23,42,1)", xaxis_title="WOB (klbs)", yaxis_title="RPM",
     height=520, font=dict(family="Inter"), margin=dict(l=60,r=80,t=20,b=60),
@@ -173,11 +175,10 @@ st.plotly_chart(fig, use_container_width=True)
 # BOTTOM ROW
 # ==============================================================================
 cl, cr = st.columns(2)
-
 with cl:
     st.markdown("### \U0001F4CA Feature Importance")
     imp = model.feature_importances_
-    fdf = pd.DataFrame({"Feature":meta["features"],"Importance":imp}).sort_values("Importance",ascending=True)
+    fdf = pd.DataFrame({"Feature":FEATURES,"Importance":imp}).sort_values("Importance",ascending=True)
     fi = go.Figure(go.Bar(x=fdf["Importance"],y=fdf["Feature"],orientation="h",
         marker=dict(color=fdf["Importance"],colorscale="Viridis"),
         text=[f"{v:.1%}" for v in fdf["Importance"]], textposition="outside"))
@@ -207,9 +208,9 @@ with cr:
 # FOOTER
 # ==============================================================================
 st.markdown("---")
-st.markdown("""<div style="text-align:center;color:#64748b;padding:16px;">
+st.markdown(f"""<div style="text-align:center;color:#64748b;padding:16px;">
 <strong>Axial Flare</strong> \u2014 AI Drilling Co-Pilot<br>
 Capstone Project | ML & AI Postgraduate \u2014 UT Austin<br>
-Dataset: Equinor Volve Field (Public Domain)<br>
+Dataset: Equinor Volve Field (Public Domain) | R\u00b2 = {r2_val:.3f}<br>
 <span style="font-size:0.75rem;color:#475569;">Python \u2022 Scikit-learn \u2022 Streamlit \u2022 Plotly</span>
 </div>""", unsafe_allow_html=True)
