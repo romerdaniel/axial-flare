@@ -221,3 +221,4 @@ Dataset: Equinor Volve Field (Public Domain) | R\u00b2 = {r2_val:.3f}<br>
 </div>""", unsafe_allow_html=True)
 
 
+
