@@ -215,7 +215,7 @@ with cr:
 st.markdown("---")
 st.markdown(f"""<div style="text-align:center;color:#64748b;padding:16px;">
 <strong>Axial Flare</strong> \u2014 AI Drilling Co-Pilot<br>
-Capstone Project | ML & AI Postgraduate \u2014 UT Austin<br>
+AI & ML Postgraduate Capstone<br>
 Dataset: Equinor Volve Field (Public Domain) | R\u00b2 = {r2_val:.3f}<br>
 <span style="font-size:0.75rem;color:#475569;">Python \u2022 Scikit-learn \u2022 Streamlit \u2022 Plotly</span>
 </div>""", unsafe_allow_html=True)
