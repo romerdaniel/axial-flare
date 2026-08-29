@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
@@ -213,12 +213,39 @@ with cr:
 # FOOTER
 # ==============================================================================
 st.markdown("---")
-st.markdown(f"""<div style="text-align:center;color:#64748b;padding:16px;">
-<strong>Axial Flare</strong> \u2014 AI Drilling Co-Pilot<br>
-AI & ML Postgraduate Capstone<br>
-Dataset: Equinor Volve Field (Public Domain) | R\u00b2 = {r2_val:.3f}<br>
-<span style="font-size:0.75rem;color:#475569;">Python \u2022 Scikit-learn \u2022 Streamlit \u2022 Plotly</span>
-</div>""", unsafe_allow_html=True)
-
-
-
+st.markdown(f"""
+<div style="text-align:center; padding:16px 0;">
+    <div style="font-size:1.1rem; font-weight:800; color:#e6edf3; letter-spacing:0.5px; margin-bottom:4px;">
+        Romer Villalobos
+    </div>
+    <div style="font-size:0.85rem; color:#e67e22; font-weight:600; margin-bottom:8px;">
+        Senior Drilling & Completion Engineer &nbsp;|&nbsp; ML Engineer &nbsp;|&nbsp; Houston, TX
+    </div>
+    <div style="font-size:0.75rem; color:#8b949e; margin-bottom:10px;">
+        Axial Flare — AI Drilling Co-Pilot &nbsp;·&nbsp;
+        Random Forest &nbsp;·&nbsp; R² = {r2_val:.3f} &nbsp;·&nbsp;
+        Equinor Volve Field F-9A · North Sea<br/>
+        AI & ML Postgraduate Capstone · Built independently as a Senior Drilling Engineer
+    </div>
+    <div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap;">
+        <a href="https://www.linkedin.com/in/romer-villalobos-2b33a653"
+           target="_blank"
+           style="color:#e67e22; font-size:0.78rem; text-decoration:none;
+                  border:1px solid #e67e22; padding:4px 14px; border-radius:20px;">
+            LinkedIn
+        </a>
+        <a href="https://github.com/romerdaniel/axial-flare"
+           target="_blank"
+           style="color:#8b949e; font-size:0.78rem; text-decoration:none;
+                  border:1px solid #30363d; padding:4px 14px; border-radius:20px;">
+            GitHub
+        </a>
+        <a href="https://drillsense-copilot.streamlit.app/"
+           target="_blank"
+           style="color:#2ecc71; font-size:0.78rem; text-decoration:none;
+                  border:1px solid #2ecc71; padding:4px 14px; border-radius:20px;">
+            🛡️ DrillSense
+        </a>
+    </div>
+</div>
+""", unsafe_allow_html=True)
