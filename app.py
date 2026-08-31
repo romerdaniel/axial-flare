@@ -38,6 +38,9 @@ st.markdown("""
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.6} }
 .section-hdr { color: #f97316; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; margin-top: 28px; margin-bottom: 8px; }
 #MainMenu {visibility: hidden;} footer {visibility: hidden;}
+header[data-testid="stHeader"] {display: none !important;}
+[data-testid="stToolbar"] {display: none !important;}
+[data-testid="stDecoration"] {display: none !important;}
 </style>
 """, unsafe_allow_html=True)
 
