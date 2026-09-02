@@ -41,6 +41,8 @@ st.markdown("""
 header[data-testid="stHeader"] {display: none !important;}
 [data-testid="stToolbar"] {display: none !important;}
 [data-testid="stDecoration"] {display: none !important;}
+.mobile-tip { display: none; background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.4); border-radius: 10px; padding: 10px 16px; color: #f97316; font-size: 0.88rem; text-align: center; margin-bottom: 14px; }
+@media (max-width: 768px) { .mobile-tip { display: block !important; } }
 </style>
 """, unsafe_allow_html=True)
 
@@ -86,6 +88,7 @@ model, df_drill, r2_val = load_and_train()
 st.markdown('<h1 class="hero-title">\U0001F525 AXIAL FLARE</h1>', unsafe_allow_html=True)
 st.markdown('<p class="hero-sub">AI Drilling Co-Pilot \u2014 Prescriptive Parameter Optimization</p>', unsafe_allow_html=True)
 st.markdown(f'<p class="hero-sub" style="font-size:0.8rem;color:#64748b;">Equinor Volve Field (North Sea) | Gradient Boosting R\u00b2 = {r2_val:.3f}</p>', unsafe_allow_html=True)
+st.markdown("""<div class="mobile-tip">📱 <strong>Tap › (top-left)</strong> to open drilling parameters — then tap ‹ to see results</div>""", unsafe_allow_html=True)
 st.markdown("---")
 
 # ==============================================================================
@@ -105,6 +108,8 @@ with st.sidebar:
     st.markdown("**Dataset:** Volve F-9_A")
     st.markdown(f"**Points:** {len(df_drill):,}")
     st.markdown("**Model:** Gradient Boosting")
+    st.markdown("""<div style="background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:8px;padding:10px;text-align:center;color:#f97316;font-size:0.82rem;margin-top:12px;">📱 <strong>Mobile:</strong> Tap ‹ to see results</div>""", unsafe_allow_html=True)
+
 
 # ==============================================================================
 # PREDICTIONS
