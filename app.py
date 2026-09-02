@@ -83,33 +83,31 @@ def load_and_train():
 model, df_drill, r2_val = load_and_train()
 
 # ==============================================================================
+# ==============================================================================
 # HEADER
 # ==============================================================================
 st.markdown('<h1 class="hero-title">\U0001F525 AXIAL FLARE</h1>', unsafe_allow_html=True)
 st.markdown('<p class="hero-sub">AI Drilling Co-Pilot \u2014 Prescriptive Parameter Optimization</p>', unsafe_allow_html=True)
-st.markdown(f'<p class="hero-sub" style="font-size:0.8rem;color:#64748b;">Equinor Volve Field (North Sea) | Gradient Boosting R\u00b2 = {r2_val:.3f}</p>', unsafe_allow_html=True)
-st.markdown("""<div class="mobile-tip">📱 <strong>Tap › (top-left)</strong> to open drilling parameters — then tap ‹ to see results</div>""", unsafe_allow_html=True)
+st.markdown(f'<p class="hero-sub" style="font-size:0.8rem;color:#64748b;">Equinor Volve Field (North Sea) | Gradient Boosting R\u00b2 = {r2_val:.3f} | {len(df_drill):,} points</p>', unsafe_allow_html=True)
 st.markdown("---")
 
 # ==============================================================================
-# SIDEBAR
+# CONTROLS — EXPANDER (works on mobile + desktop)
 # ==============================================================================
-with st.sidebar:
-    st.markdown("### \u2699\ufe0f Drilling Parameters")
-    st.markdown('<p class="section-hdr">Surface Controls</p>', unsafe_allow_html=True)
-    wob = st.slider("Weight on Bit (klbs)", 2.0, 40.0, 20.0, 0.5)
-    rpm = st.slider("RPM", 20, 200, 150, 5)
-    torque = st.slider("Torque (ft-lbs)", 500, 7500, 4500, 100)
-    st.markdown('<p class="section-hdr">Well Conditions</p>', unsafe_allow_html=True)
-    depth = st.slider("Depth (ft)", 1000, 4000, 2500, 50)
-    flow = st.slider("Flow Rate (gpm)", 100, 1000, 550, 25)
-    gr = st.slider("Gamma Ray (API)", 10, 200, 100, 5)
-    st.markdown("---")
-    st.markdown("**Dataset:** Volve F-9_A")
-    st.markdown(f"**Points:** {len(df_drill):,}")
-    st.markdown("**Model:** Gradient Boosting")
-    st.markdown("""<div style="background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:8px;padding:10px;text-align:center;color:#f97316;font-size:0.82rem;margin-top:12px;">📱 <strong>Mobile:</strong> Tap ‹ to see results</div>""", unsafe_allow_html=True)
+with st.expander("⚙️ Drilling Parameters — Adjust to predict ROP", expanded=True):
+    c_a, c_b = st.columns(2)
+    with c_a:
+        st.markdown('<p class="section-hdr">Surface Controls</p>', unsafe_allow_html=True)
+        wob    = st.slider("Weight on Bit (klbs)", 2.0, 40.0, 20.0, 0.5)
+        rpm    = st.slider("RPM", 20, 200, 150, 5)
+        torque = st.slider("Torque (ft-lbs)", 500, 7500, 4500, 100)
+    with c_b:
+        st.markdown('<p class="section-hdr">Well Conditions</p>', unsafe_allow_html=True)
+        depth = st.slider("Depth (ft)", 1000, 4000, 2500, 50)
+        flow  = st.slider("Flow Rate (gpm)", 100, 1000, 550, 25)
+        gr    = st.slider("Gamma Ray (API)", 10, 200, 100, 5)
 
+st.markdown("---")
 
 # ==============================================================================
 # PREDICTIONS
@@ -119,6 +117,8 @@ pred_rop = max(model.predict(input_data[FEATURES])[0], 0.1)
 mse_val = calc_mse(wob, rpm, torque, pred_rop)
 z_label, z_class, z_color = mse_zone(mse_val)
 efficiency = min(100, max(0, (1 - (mse_val - 5) / 55) * 100))
+
+
 
 # ==============================================================================
 # METRICS
